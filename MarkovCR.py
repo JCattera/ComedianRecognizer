@@ -2,7 +2,6 @@
 #
 #Marina, Jamie, Matana
 
-<<<<<<< Updated upstream
 import sys
 import StemmingUtil
 import math
@@ -27,7 +26,7 @@ def loadTrain():
     trainSets["Ansari"] = "Aziz_Ansari.txt"
     trainSets["Sykes"] = "Wanda_Sykes.txt"
  #   connect keys (fileNames) to processed list of words in file)
-    for comic in ["Mulaney"]:
+    for comic in trainSets.keys():
         #enter 1st nest of markovChain dictionary (comedians)
         comicChain = processFile(trainSets.get(comic), comicChain = {})
         markovChain[comic] = comicChain
@@ -89,8 +88,8 @@ def processFileTest():
     for line in Text:
         #read line after "###" as the author
         if "#" in line:
-            author = Text.readline()
-            author = author.replace('\n', ' ')
+            comic = Text.readline()
+            comic = comic.replace('\n', '')
             continue
         else:
             #create a list of words in passage
@@ -100,7 +99,7 @@ def processFileTest():
             line=line.replace('”','"')            
             listLine = line.split(' ')
             for w in listLine:
-
+                passage.append(w)
             #add passage to appropriate author in the dictionary
             if comic not in testDict.keys():
                 testDict[comic] =[passage]
@@ -124,17 +123,72 @@ def Probability(markovChain):
     return markovChain
 
 
-def makeMatrix(markovChain, testDict):
+def makeMatrix(testDict, markovChain):
     #create a list of all comic labels
     allComics = []
     #create a confusion matrix
     matrix = []
     #first line in matrix is a list of comics
-    for comic in 
+    for comic in markovChain.keys():
+        allComics.insert(0, comic)
+    allComics.insert(0, "Comics")
+    matrix.append(allComics)
+    for testComic in allComics[1:]:
+        #1st item in line is actual label
+        mLine = [testComic]
+        for c in allComics[1:]:
+            mLine.append(0)
+        #create a list of predictions for each passage from this comic
+        predictions = Predict(testDict.get(testComic), markovChain)
+        for p in predictions:
+            mLine[allComics.index(p)] += 1
+        #add line to matrix
+        matrix.append(mLine)
+    return matrix
+        
 
-def Prediction(markovChain, testDict):
-    
-    return
+def Predict(testSet, markovChain):
+    predictions = []
+    bestScore = 0
+    bestComic = ""
+    for passage in testSet:
+        for comic in markovChain.keys():
+            #get the Markov Chain belonging to the comic in question
+            comicChain = markovChain.get(comic)
+            score = 0
+            prevW = ""
+            currentW = ""
+            for word in passage:
+                #figure out if word is in Markov Chain
+                if prevW in comicChain.keys():
+                    currentW =word
+                    word1Dict = comicChain.get(prevW)
+                    #add probability to the comic's score
+                    if currentW in word1Dict.keys():
+                        score += word1Dict.get(currentW)
+                prevW = word
+            #compare score of this comic to the best score so far
+            if score > bestScore:
+                bestScore = score
+                bestComic = comic
+        #add prediction for this passage
+        predictions.append(bestComic)
+    return predictions
+
+
+def writeFile(matrix):
+    #create output file
+    file = "results_comics.csv"
+    f = open(file, "w+")
+    #print matrix
+    labels = ",".join(map(str, matrix[0]))
+    f.write(labels + ","+"\n")
+    for i in range(1, len(matrix)):
+        string = ",".join(map(str, matrix[i]))
+        f.write(string+"\n")
+    #close the file
+    f.close()
+
 
 def main():
     #load train and test set files
@@ -144,11 +198,9 @@ def main():
     #calculate word probabilities
     markovChain = Probability(markovChain)
     #create a confusion matrix
-    matrix = makeMatrix
-    #make predictions based on test set
-    for comic in testDict.keys():
-        prediction = Predict(markovChain, testDict)
-#    markov = MarkovChain(trainSets)
+    matrix = makeMatrix(testDict, markovChain)
+    #write output file
+    writeFile(matrix)
 
 if __name__ == '__main__':
     main()
