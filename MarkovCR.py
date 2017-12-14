@@ -99,17 +99,7 @@ def processFileTest():
             line=line.replace('”','"')            
             listLine = line.split(' ')
             for w in listLine:
-                if w.lower() not in stopWords and w != "#" and w != '':
-                    tok = StemmingUtil.parseTokens(w)
-                    stem = StemmingUtil.createStems(tok)
-                    newstem=deepcopy(stem)
-                    for i in stem:
-                            #print(i)
-                        if i in punctuation:
-                            newstem.remove(i)
-                        if i in stopWords:
-                           newstem.remove(i)
-                    passage.extend(newstem)
+
             #add passage to appropriate author in the dictionary
             if author not in testDict.keys():
                 testDict[author] =[passage]
@@ -118,7 +108,21 @@ def processFileTest():
     return testDict
 
 
-#def probability
+def probability(markovChain):
+    for comic in markovChain.keys():
+        comicChain = markovChain.get(comic)
+        for word1 in comicChain.keys():
+            word1Dict = comicChain.get(word1)
+            #find total number of times word1 has appeared in text
+            totalW = 0
+            for word2 in word1Dict.keys():
+                totalW += word1Dict.get(word2)
+            for word2 in word1Dict.keys():
+                word1Dict[word2] = word1Dict.get(word2) / totalW
+                print(word1, ":", word2, ":", word1Dict.get(word2))
+            
+
+    return markovChain
 
 
 def main():
@@ -126,8 +130,9 @@ def main():
     testSet = processFileTest()
     #load in train sets to make a Markov Chain
     markovChain = loadTrain()
-    print(markovChain)
-    markov = MarkovChain(trainSets)
+    #calculate word probabilities
+    markovChain = probability(markovChain)
+#    markov = MarkovChain(trainSets)
 
 if __name__ == '__main__':
     main()
