@@ -13,38 +13,38 @@ punctuation=['!','``','\'\'','#','$','%','&','\'','(',')','*','+',',','-','--','
 '<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~','“','”','"']
 
 def loadTrain():
-    trainSets = {}
+    trainSets = {} #list of text file names
+    markovChain = {} #triple-nested dictionary for markov chain
     #init trainSets. 1st entry is author name.
     allUnique = []
-    trainSets["Eddie_Izzard.txt"] = ["Izzard"]
-    trainSets["Gabriel_Iglesias.txt"] = ["Iglesias"]
-    trainSets["John_Mulaney.txt"] = ["Mulaney"]
-    trainSets["Trevor_Noah.txt"] = ["Noah"]
-    trainSets["Sarah_Silverman.txt"] = ["Silverman"]
-    trainSets["Bo_Burnham.txt"] = ["Burnham"]
-    trainSets["Hannibal_Buress.txt"] = ["Buress"]
-    trainSets["Aziz_Ansari.txt"] = ["Ansari"]
-    trainSets["Wanda_Sykes.txt"] = ["Sykes"]
+    trainSets["Izzard"] = "Eddie_Izzard.txt"
+    trainSets["Iglesias"] = "Gabriel_Iglesias.txt"
+    trainSets["Mulaney"] = "John_Mulaney.txt"
+    trainSets["Noah"] = "Trevor_Noah.txt"
+    trainSets["Silverman"] = "Sarah_Silverman.txt"
+    trainSets["Burnham"] = "Bo_Burnham.txt"
+    trainSets["Buress"] = "Hannibal_Buress.txt"
+    trainSets["Ansari"] = "Aziz_Ansari.txt"
+    trainSets["Sykes"] = "Wanda_Sykes.txt"
  #   connect keys (fileNames) to processed list of words in file)
-    for i in trainSets.keys():
-        words = processFile(i)
-        for w in words:
-            trainSets[i].append(w)
-            if w not in allUnique:
-                allUnique.append(w)
-    return trainSets, allUnique
+    for comic in ["Mulaney"]:
+        #enter 1st nest of markovChain dictionary (comedians)
+        comicChain = processFile(trainSets.get(comic), comicChain = {})
+        markovChain[comic] = comicChain
+    return markovChain
 
-def processFile(fileName):
+def processFile(fileName, comicChain):
     #load text file
-    Text = open(fileName, mode = "r")
-    wordlist = []
-    #load list of stopwords (first list from https://www.ranks.nl/stopwords)
-    stopWords = []
-    stopFile = open("StopWords.txt", encoding = "utf-8", mode = "r")
-    for word in stopFile:
-        word = word.replace('\n', '')
-        stopWords.append(word)
-    #turn text into list of words
+    Text = open(fileName, encoding = "utf-8", mode = "r")
+##    #load list of stopwords (first list from https://www.ranks.nl/stopwords)
+##    stopWords = []
+##    stopFile = open("StopWords.txt", encoding = "utf-8", mode = "r")
+##    for word in stopFile:
+##        word = word.replace('\n', '')
+##        stopWords.append(word)
+    #turn line of text into list of words
+    prevW = ""
+    currentW = ""
     for line in Text:
         line = line.replace('\n', '')
         line=line.replace('“','"')
@@ -54,21 +54,28 @@ def processFile(fileName):
         listLine = line.split(' ')
         for w in listLine:
             w = "".join([ch for ch in w if ch not in string.punctuation]) # removing puncuation
-            if w.lower() not in stopWords and len(w) > 0:
-                tok = StemmingUtil.parseTokens(w)
-                stem = StemmingUtil.createStems(tok)
-                newstem=deepcopy(stem)
-                for i in stem:
-                    if i in punctuation:
-                        newstem.remove(i)
-                    if i in stopWords:
-                        newstem.remove(i)
-                wordlist.extend(newstem)
-    return wordlist
+            #enter 2nd nest of markovChain dictionary (root word)
+            if prevW != "":
+                currentW = w
+                #enter 3rd nest of markovChain dictionary (word given root word)
+                if prevW in comicChain.keys():
+                    givenWordDict = {}
+                    givenWordDict = comicChain.get(prevW)
+                    #count the # of times current word appears given previous word
+                    if currentW not in givenWordDict.keys():
+                        givenWordDict[currentW] = 1 
+                    else:
+                        givenWordDict[currentW] += 1
+                else:
+                    comicChain[prevW] = {}
+                    givenWordDict = comicChain.get(prevW)
+                    givenWordDict[currentW] = 1
+            prevW = w
+    return comicChain
 
 def processFileTest():
     #load text file
-    Text = open("TestSet_Passages.txt", mode = "r")
+    Text = open("TestSet_Passages.txt", encoding = "utf-8", mode = "r")
     testDict = {} 
     #load list of stopwords (first list from https://www.ranks.nl/stopwords)
     stopWords = []
@@ -93,17 +100,7 @@ def processFileTest():
             line=line.replace('”','"')            
             listLine = line.split(' ')
             for w in listLine:
-                if w.lower() not in stopWords and w != "#" and w != '':
-                    tok = StemmingUtil.parseTokens(w)
-                    stem = StemmingUtil.createStems(tok)
-                    newstem=deepcopy(stem)
-                    for i in stem:
-                            #print(i)
-                        if i in punctuation:
-                            newstem.remove(i)
-                        if i in stopWords:
-                           newstem.remove(i)
-                    passage.extend(newstem)
+
             #add passage to appropriate author in the dictionary
             if author not in testDict.keys():
                 testDict[author] =[passage]
@@ -112,8 +109,32 @@ def processFileTest():
     return testDict
 
 
+def probability(markovChain):
+    for comic in markovChain.keys():
+        comicChain = markovChain.get(comic)
+        for word1 in comicChain.keys():
+            word1Dict = comicChain.get(word1)
+            #find total number of times word1 has appeared in text
+            totalW = 0
+            for word2 in word1Dict.keys():
+                totalW += word1Dict.get(word2)
+            for word2 in word1Dict.keys():
+                word1Dict[word2] = word1Dict.get(word2) / totalW
+                print(word1, ":", word2, ":", word1Dict.get(word2))
+            
+
+    return markovChain
+
+
 def main():
     #load train and test set files
     testSet = processFileTest()
-    trainSets, allUnique = loadTrain()
-    markov = MarkovChain(trainSets)
+    #load in train sets to make a Markov Chain
+    markovChain = loadTrain()
+    #calculate word probabilities
+    markovChain = probability(markovChain)
+#    markov = MarkovChain(trainSets)
+
+if __name__ == '__main__':
+    main()
+
