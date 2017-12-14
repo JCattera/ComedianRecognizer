@@ -93,7 +93,7 @@ def processFileTest():
             author = author.replace('\n', ' ')
             continue
         else:
-            #create a list of stems in passage
+            #create a list of words in passage
             passage = []
             line = line.replace('\n', ' ')
             line=line.replace('“','"')
@@ -102,14 +102,14 @@ def processFileTest():
             for w in listLine:
 
             #add passage to appropriate author in the dictionary
-            if author not in testDict.keys():
-                testDict[author] =[passage]
+            if comic not in testDict.keys():
+                testDict[comic] =[passage]
             else:
-                testDict.get(author).append(passage)
+                testDict.get(comic).append(passage)
     return testDict
 
 
-def probability(markovChain):
+def Probability(markovChain):
     for comic in markovChain.keys():
         comicChain = markovChain.get(comic)
         for word1 in comicChain.keys():
@@ -118,21 +118,36 @@ def probability(markovChain):
             totalW = 0
             for word2 in word1Dict.keys():
                 totalW += word1Dict.get(word2)
+            #divide # of appearances of word2|word1 by totalWord1
             for word2 in word1Dict.keys():
                 word1Dict[word2] = word1Dict.get(word2) / totalW
-                print(word1, ":", word2, ":", word1Dict.get(word2))
-            
-
     return markovChain
 
 
+def makeMatrix(markovChain, testDict):
+    #create a list of all comic labels
+    allComics = []
+    #create a confusion matrix
+    matrix = []
+    #first line in matrix is a list of comics
+    for comic in 
+
+def Prediction(markovChain, testDict):
+    
+    return
+
 def main():
     #load train and test set files
-    testSet = processFileTest()
+    testDict = processFileTest()
     #load in train sets to make a Markov Chain
     markovChain = loadTrain()
     #calculate word probabilities
-    markovChain = probability(markovChain)
+    markovChain = Probability(markovChain)
+    #create a confusion matrix
+    matrix = makeMatrix
+    #make predictions based on test set
+    for comic in testDict.keys():
+        prediction = Predict(markovChain, testDict)
 #    markov = MarkovChain(trainSets)
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-#authors.py
+#NaiveBayesCR.py
 #
 #Marina Schwadron
 
