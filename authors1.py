@@ -120,7 +120,8 @@ def processFileTest():
             passage = []
             line = line.replace('\n', ' ')
             line=line.replace('“','"')
-            line=line.replace('”','"')            
+            line=line.replace('”','"')  
+            line=line.replace("’","'")          
             listLine = line.split(' ')
             for w in listLine:
                 if w.lower() not in stopWords and w != "#" and w != '':

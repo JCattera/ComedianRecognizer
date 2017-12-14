@@ -2,6 +2,7 @@
 #
 #Marina, Jamie, Matana
 
+<<<<<<< Updated upstream
 import sys
 import StemmingUtil
 import math
