@@ -24,13 +24,13 @@ def loadTrain():
     trainSets["Burnham"] = "Bo_Burnham.txt"
     trainSets["Buress"] = "Hannibal_Buress.txt"
     trainSets["Ansari"] = "Aziz_Ansari.txt"
-    trainSets"Sykes"] = "Wanda_Sykes.txt"
+    trainSets["Sykes"] = "Wanda_Sykes.txt"
  #   connect keys (fileNames) to processed list of words in file)
-    for comic in trainSets.keys():
+    for comic in ["Mulaney"]:
         #enter 1st nest of markovChain dictionary (comedians)
         comicChain = processFile(trainSets.get(comic), comicChain = {})
         markovChain[comic] = comicChain
-    return trainSets
+    return markovChain
 
 def processFile(fileName, comicChain):
     #load text file
@@ -58,12 +58,13 @@ def processFile(fileName, comicChain):
                 currentW = w
                 #enter 3rd nest of markovChain dictionary (word given root word)
                 if prevW in comicChain.keys():
+                    givenWordDict = {}
                     givenWordDict = comicChain.get(prevW)
                     #count the # of times current word appears given previous word
-                    if currentW in givenWordDict.keys():
-                        givenWordDict.get(currentW) += 1 
+                    if currentW not in givenWordDict.keys():
+                        givenWordDict[currentW] = 1 
                     else:
-                        givenWordDict[currentW] = 1
+                        givenWordDict[currentW] += 1
                 else:
                     comicChain[prevW] = {}
                     givenWordDict = comicChain.get(prevW)
@@ -117,8 +118,17 @@ def processFileTest():
     return testDict
 
 
+#def probability
+
+
 def main():
     #load train and test set files
     testSet = processFileTest()
-    trainSets = loadTrain()
+    #load in train sets to make a Markov Chain
+    markovChain = loadTrain()
+    print(markovChain)
     markov = MarkovChain(trainSets)
+
+if __name__ == '__main__':
+    main()
+
