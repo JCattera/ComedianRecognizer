@@ -18,7 +18,11 @@ class Node():
         self.wordDict = {}
         self.probDict = {}
         self.countUnique = countUnique
-    def countWords(self, wordList):
+        self.curseCount = 0
+        self.curseScore = 0
+    def countWords(self, wordList, curseWords):
+        curseCount = self.curseCount
+        curseScore = self.curseScore
         wordDict = self.wordDict
         probDict = self.probDict
         #build a dictionary of word counts
@@ -27,11 +31,16 @@ class Node():
                 wordDict[word] = 1
             elif len(word)!=0 and word in wordDict.keys():
                 wordDict[word] += 1
+            if word in curseWords:
+                curseCount += 1
         #build a dictionary of word probabilities
         for word in wordDict.keys():
             if wordDict.get(word):
                 p = (wordDict.get(word) + 1)/(self.totalWords + self.countUnique)
                 probDict[word] = p
+        self.curseScore = curseCount/self.totalWords
+##        print(self.author)
+##        print(self.curseScore)
 
 def loadTrain():
     trainSets = {}
@@ -67,14 +76,15 @@ def processFile(fileName):
         stopWords.append(word)
     #turn text into list of words
     for line in Text:
-        line = line.replace('\n', ' ')
+        line = line.replace('\n', '')
         line=line.replace('“','"')
         line=line.replace('”','"')
         line=line.replace("_","")
         line=line.replace("—"," ")
         listLine = line.split(' ')
         for w in listLine:
-            if w.lower() not in stopWords:
+            w = "".join([ch for ch in w if ch not in string.punctuation]) # removing puncuation
+            if w.lower() not in stopWords and len(w) > 0:
                 tok = StemmingUtil.parseTokens(w)
                 stem = StemmingUtil.createStems(tok)
                 newstem=deepcopy(stem)
@@ -118,11 +128,11 @@ def processFileTest():
                     stem = StemmingUtil.createStems(tok)
                     newstem=deepcopy(stem)
                     for i in stem:
-                        #print(i)
+                            #print(i)
                         if i in punctuation:
                             newstem.remove(i)
                         if i in stopWords:
-                            newstem.remove(i)
+                           newstem.remove(i)
                     passage.extend(newstem)
             #add passage to appropriate author in the dictionary
             if author not in testDict.keys():
@@ -134,36 +144,64 @@ def processFileTest():
 def NaiveBayes(trainSets, allUnique):
     #create a node for each author, which will contain a dictionary of words and their counts
     authorNodes = {} #Dict of author nodes
+    curseWords = []
+    curseFile = open("CurseWords.txt", encoding = "utf-8", mode = "r")
+    for word in curseFile:
+        word = word.replace('\n', '')
+        curseWords.append(word)
     for book in trainSets.keys():
         N = Node(trainSets.get(book)[0], len(trainSets.get(book)[1:]), len(allUnique))
-        N.countWords(trainSets.get(book)[1:])
+        N.countWords(trainSets.get(book)[1:], curseWords)
         #create dictionary entry with {author: Node}
         authorNodes[trainSets.get(book)[0]] = N
     return authorNodes
         
 def Prediction(testSet, authorNodes, trainSets):
+    curseWords = []
+    curseFile = open("CurseWords.txt", encoding = "utf-8", mode = "r")
+    for word in curseFile:
+        word = word.replace('\n', '')
+        curseWords.append(word)
     bestSum = -100000000
     bestAuthor = ""
     bestAuthors = []
+    bestCurse = 1
+    bestCurAuth = ""
+    bestCAs = []
     sumA = 0
     count = 0
     for passage in testSet:
         count += 1
         for book in trainSets.keys():
+            passCurse = 0
+            passCurScore = 0
+            totalW = 0
             author = trainSets.get(book)[0]
             aNode = authorNodes.get(author)
             for w in passage:
+                totalW += 1
                 #print(w)
                 if len(w)!=0:
                     if w in aNode.probDict.keys():
                         sumA += math.log(aNode.probDict.get(w))
                     else: 
                         sumA += math.log(1/(aNode.countUnique + aNode.totalWords))
+                    if w in curseWords:
+                        passCurse += 1
+            passCurseScore = passCurse/totalW
+            print(author, sumA)
             if sumA > bestSum:
                 bestSum = sumA
                 bestAuthor = author
             sumA = 0
+            curseComp = abs(passCurseScore - aNode.curseScore)
+            if curseComp < bestCurse:
+                bestCurAuth = author
+                bestCurse = curseComp
         bestAuthors.append(bestAuthor)
+        bestCAs.append(bestCurAuth)
+    print(bestAuthors)
+    print(bestCAs)
     return bestAuthors
     
 def writeFile(matrix):
@@ -201,6 +239,7 @@ def main():
         for a in allAuthors[1:]:
             mLine.append(0)
         #create a list of predictions for each passage for this author
+ #       print(testSet.get(testAuthor+" "),testAuthor)
         prediction = Prediction(testSet.get(testAuthor + " "), authorNodes, trainSets)
         for p in prediction:
             mLine[allAuthors.index(p)] += 1
@@ -211,4 +250,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
