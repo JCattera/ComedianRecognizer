@@ -9,7 +9,7 @@ import string
 from copy import deepcopy
 
 punctuation=['!','``','\'\'','#','$','%','&','\'','(',')','*','+',',','-','--','.','/',':',';',\
-'<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~','“','”','"']
+'<','=','>','?','@','[','\\',']','^','_','`','{','|','}','~','"',' ','♪']
 
 def loadTrain():
     trainSets = {} #list of text file names
@@ -50,11 +50,13 @@ def processFile(fileName, comicChain):
         line=line.replace('”','"')
         line=line.replace("_","")
         line=line.replace("—"," ")
+        line=line.replace("–"," ")
         listLine = line.split(' ')
         for w in listLine:
             w = "".join([ch for ch in w if ch not in string.punctuation]) # removing puncuation
             #enter 2nd nest of markovChain dictionary (root word)
-            if prevW != "":
+            w=w.lower()
+            if (prevW != "") & (w != ""):
                 currentW = w
                 #enter 3rd nest of markovChain dictionary (word given root word)
                 if prevW in comicChain.keys():
@@ -76,12 +78,6 @@ def processFileTest():
     #load text file
     Text = open("TestSet_Passages.txt", encoding = "utf-8", mode = "r")
     testDict = {} 
-    #load list of stopwords (first list from https://www.ranks.nl/stopwords)
-    stopWords = []
-    stopFile = open("StopWords.txt", encoding = "utf-8", mode = "r")
-    for word in stopFile:
-        word = word.replace('\n', '')
-        stopWords.append(word)
     #create a dictionary where authors are keys and values are a list of their
         #5 passages
     done = False
@@ -99,7 +95,7 @@ def processFileTest():
             line=line.replace('”','"')            
             listLine = line.split(' ')
             for w in listLine:
-                passage.append(w)
+                passage.append(w.lower())
             #add passage to appropriate author in the dictionary
             if comic not in testDict.keys():
                 testDict[comic] =[passage]
@@ -123,17 +119,12 @@ def Probability(markovChain):
     return markovChain
 
 
-<<<<<<< Updated upstream
 def makeMatrix(testDict, markovChain):
-=======
-def makeMatrix(markovChain, testDict):
->>>>>>> Stashed changes
     #create a list of all comic labels
     allComics = []
     #create a confusion matrix
     matrix = []
     #first line in matrix is a list of comics
-<<<<<<< Updated upstream
     for comic in markovChain.keys():
         allComics.insert(0, comic)
     allComics.insert(0, "Comics")
@@ -183,7 +174,7 @@ def Predict(testSet, markovChain):
 
 def writeFile(matrix):
     #create output file
-    file = "results_comics.csv"
+    file = "Markov_Results.csv"
     f = open(file, "w+")
     #print matrix
     labels = ",".join(map(str, matrix[0]))
@@ -194,13 +185,6 @@ def writeFile(matrix):
     #close the file
     f.close()
 
-=======
-    for comic in 
-
-def Prediction(markovChain, testDict):
-    
-    return
->>>>>>> Stashed changes
 
 def main():
     #load train and test set files
@@ -210,17 +194,9 @@ def main():
     #calculate word probabilities
     markovChain = Probability(markovChain)
     #create a confusion matrix
-<<<<<<< Updated upstream
     matrix = makeMatrix(testDict, markovChain)
     #write output file
     writeFile(matrix)
-=======
-    matrix = makeMatrix
-    #make predictions based on test set
-    for comic in testDict.keys():
-        prediction = Predict(markovChain, testDict)
-#    markov = MarkovChain(trainSets)
->>>>>>> Stashed changes
 
 if __name__ == '__main__':
     main()
