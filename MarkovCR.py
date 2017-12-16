@@ -123,12 +123,17 @@ def Probability(markovChain):
     return markovChain
 
 
+<<<<<<< Updated upstream
 def makeMatrix(testDict, markovChain):
+=======
+def makeMatrix(markovChain, testDict):
+>>>>>>> Stashed changes
     #create a list of all comic labels
     allComics = []
     #create a confusion matrix
     matrix = []
     #first line in matrix is a list of comics
+<<<<<<< Updated upstream
     for comic in markovChain.keys():
         allComics.insert(0, comic)
     allComics.insert(0, "Comics")
@@ -189,6 +194,13 @@ def writeFile(matrix):
     #close the file
     f.close()
 
+=======
+    for comic in 
+
+def Prediction(markovChain, testDict):
+    
+    return
+>>>>>>> Stashed changes
 
 def main():
     #load train and test set files
@@ -198,9 +210,17 @@ def main():
     #calculate word probabilities
     markovChain = Probability(markovChain)
     #create a confusion matrix
+<<<<<<< Updated upstream
     matrix = makeMatrix(testDict, markovChain)
     #write output file
     writeFile(matrix)
+=======
+    matrix = makeMatrix
+    #make predictions based on test set
+    for comic in testDict.keys():
+        prediction = Predict(markovChain, testDict)
+#    markov = MarkovChain(trainSets)
+>>>>>>> Stashed changes
 
 if __name__ == '__main__':
     main()
