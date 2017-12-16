@@ -206,7 +206,7 @@ def Prediction(testSet, authorNodes, trainSets):
     
 def writeFile(matrix):
     #create output file
-    file = "results_authors.csv"
+    file = "NaiveBayes_Results.csv"
     f = open(file, "w+")
     #print matrix
     labels = ",".join(map(str, matrix[0]))
